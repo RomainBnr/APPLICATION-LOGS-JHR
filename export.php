@@ -13,14 +13,14 @@ $filters = [
     'from'   => trim(getParam('from','')),
     'to'     => trim(getParam('to','')),
 ];
-$data = $model->search($filters, 1, 100000); // large export
+$data = $model->search($filters, 1, 100000);
 
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=logs_export.csv');
 
 $out = fopen('php://output', 'w');
-fputcsv($out, ['id','created_at','level','source','host','message']);
+fputcsv($out, ['id','timestamp','level','application','hostname','message']);
 foreach ($data['rows'] as $r) {
-    fputcsv($out, [$r['id'],$r['created_at'],$r['level'],$r['source'],$r['host'],$r['message']]);
+    fputcsv($out, [$r['id'],$r['timestamp'],$r['level'],$r['application'],$r['hostname'],$r['message']]);
 }
 fclose($out);

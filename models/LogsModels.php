@@ -15,27 +15,27 @@ class LogsModel {
             $where[] = "level = :level";
             $params[':level'] = $filters['level'];
         }
-        if (!empty($filters['host'])) {
-            $where[] = "host = :host";
+        if (!empty($filters['host'])) {                 // UI "host" -> colonne hostname
+            $where[] = "hostname = :host";
             $params[':host'] = $filters['host'];
         }
-        if (!empty($filters['source'])) {
-            $where[] = "source = :source";
+        if (!empty($filters['source'])) {               // UI "source" -> colonne application
+            $where[] = "application = :source";
             $params[':source'] = $filters['source'];
         }
         if (!empty($filters['from'])) {
-            $where[] = "created_at >= :from";
+            $where[] = "timestamp >= :from";
             $params[':from'] = $filters['from'];
         }
         if (!empty($filters['to'])) {
-            $where[] = "created_at <= :to";
+            $where[] = "timestamp <= :to";
             $params[':to'] = $filters['to'];
         }
 
-        $sql = "SELECT SQL_CALC_FOUND_ROWS id, level, source, host, message, created_at
-                FROM logs";
+        $sql = "SELECT SQL_CALC_FOUND_ROWS id, timestamp, level, application, hostname, message
+                FROM log";
         if ($where) $sql .= " WHERE ".implode(" AND ", $where);
-        $sql .= " ORDER BY created_at DESC LIMIT :off,:lim";
+        $sql .= " ORDER BY timestamp DESC LIMIT :off,:lim";
 
         $stmt = $this->pdo->prepare($sql);
         foreach ($params as $k=>$v) $stmt->bindValue($k, $v);

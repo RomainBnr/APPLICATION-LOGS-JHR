@@ -8,39 +8,12 @@ if (!isLoggedIn()) {
     exit;
 }
 
-/* --------------------
-   CSRF token (pour POST)
--------------------- */
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-$csrf = $_SESSION['csrf_token'];
-
-/* --------------------
-   Déconnexion (POST local)
--------------------- */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['do_logout'])) {
-    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        http_response_code(400);
-        exit('Requête invalide (CSRF).');
-    }
-    // Détruire proprement la session
-    $_SESSION = [];
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time()-42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
-    }
-    session_destroy();
-    header("Location: views/login.php");
-    exit;
-}
-
-/* --------------------
-   Filtres GET
--------------------- */
+// --------------------
+// Filtres GET
+// --------------------
 $q       = trim($_GET['q'] ?? '');
 $level   = trim($_GET['level'] ?? '');
-$host    = trim($_GET['host'] ?? ''); // colonne 'hostname'
+$host    = trim($_GET['host'] ?? ''); // correspond à la colonne 'hostname'
 $page    = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 50;
 
@@ -60,9 +33,9 @@ if ($host !== '') {
     $params[':host'] = $host;
 }
 
-/* --------------------
-   Export CSV si demandé
--------------------- */
+// --------------------
+// Export CSV si demandé
+// --------------------
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $sqlExport = "SELECT timestamp, level, application, hostname, message FROM log";
     if ($where) {
@@ -76,13 +49,18 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     }
     $stmtExp->execute();
 
+    // En-têtes HTTP pour un téléchargement CSV UTF-8
     $filename = "logs_" . date('Ymd_His') . ".csv";
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
-    echo "\xEF\xBB\xBF"; // BOM UTF-8 (Excel)
+
+    // (Optionnel) BOM pour Excel
+    echo "\xEF\xBB\xBF";
 
     $out = fopen('php://output', 'w');
+    // En-têtes de colonnes
     fputcsv($out, ['timestamp','level','application','hostname','message']);
+    // Lignes
     while ($row = $stmtExp->fetch(PDO::FETCH_ASSOC)) {
         fputcsv($out, [
             $row['timestamp'],
@@ -96,9 +74,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
-/* --------------------
-   Requête paginée (affichage)
--------------------- */
+// --------------------
+// Requête paginée (affichage)
+// --------------------
 $sql = "SELECT id, timestamp, level, application, hostname, message FROM log";
 if ($where) {
     $sql .= " WHERE " . implode(" AND ", $where);
@@ -125,12 +103,7 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body class="dashboard-body">
     <div class="header">
         <h1>Dashboard Logs</h1>
-
-        <!-- Bouton Déconnexion en POST (sécurisé CSRF) -->
-        <form method="post" style="margin:0;">
-            <input type="hidden" name="csrf_token" value="<?= h($csrf) ?>">
-            <button type="submit" name="do_logout" class="logout">Déconnexion</button>
-        </form>
+        <a href="logout.php" class="logout">Déconnexion</a>
     </div>
 
     <div class="filter-form">

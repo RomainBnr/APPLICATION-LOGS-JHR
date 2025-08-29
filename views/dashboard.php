@@ -18,12 +18,12 @@
   <div class="topbar">
     <form method="get" action="index.php">
       <input type="text" name="q" placeholder="Recherche message" value="<?=h($filters['q'])?>">
-      <input type="text" name="host" placeholder="Host" value="<?=h($filters['host'])?>">
-      <input type="text" name="source" placeholder="Source" value="<?=h($filters['source'])?>">
+      <input type="text" name="host" placeholder="Hostname" value="<?=h($filters['host'])?>">
+      <input type="text" name="source" placeholder="Application" value="<?=h($filters['source'])?>">
       <select name="level">
         <option value="">Niveau</option>
-        <?php foreach (['info','warning','error','critical'] as $lvl): ?>
-          <option value="<?=$lvl?>" <?= $filters['level']===$lvl?'selected':''?>><?=strtoupper($lvl)?></option>
+        <?php foreach (['INFO','WARNING','ERROR','CRITICAL'] as $lvl): ?>
+          <option value="<?=$lvl?>" <?= strtoupper($filters['level']??'')===$lvl?'selected':''?>><?=$lvl?></option>
         <?php endforeach; ?>
       </select>
       <input type="datetime-local" name="from" value="<?=h($filters['from'])?>" />
@@ -40,16 +40,16 @@
   <table>
     <thead>
       <tr>
-        <th>Date</th><th>Niveau</th><th>Source</th><th>Host</th><th>Message</th>
+        <th>Timestamp</th><th>Niveau</th><th>Application</th><th>Hostname</th><th>Message</th>
       </tr>
     </thead>
     <tbody>
       <?php foreach ($rows as $r): ?>
         <tr>
-          <td><?=h($r['created_at'])?></td>
+          <td><?=h($r['timestamp'])?></td>
           <td><?=h(strtoupper($r['level']))?></td>
-          <td><?=h($r['source'] ?? '')?></td>
-          <td><?=h($r['host'] ?? '')?></td>
+          <td><?=h($r['application'] ?? '')?></td>
+          <td><?=h($r['hostname'] ?? '')?></td>
           <td><?=h($r['message'])?></td>
         </tr>
       <?php endforeach; ?>
